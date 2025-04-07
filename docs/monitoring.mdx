@@ -1,0 +1,127 @@
+---
+title: Monitoring
+description: How to monitor the Node Group Scaler Operator
+---
+
+# Monitoring
+
+Learn how to monitor the Node Group Scaler Operator and track your scaling operations.
+
+## Operator Logs
+
+The operator provides detailed logs about scaling operations and decisions. You can view these logs using kubectl:
+
+```bash
+kubectl logs -n node-group-scaler -l app=node-group-scaler
+```
+
+### Log Levels
+
+- **INFO**: General operational information
+- **WARN**: Non-critical issues that don't affect operation
+- **ERROR**: Critical issues that prevent scaling operations
+
+## Metrics
+
+The operator exposes Prometheus metrics that can be used for monitoring and alerting.
+
+### Available Metrics
+
+- `node_group_scaler_scaling_operations_total`: Total number of scaling operations
+- `node_group_scaler_scaling_operations_failed_total`: Number of failed scaling operations
+- `node_group_scaler_current_nodes`: Current number of nodes in each node group
+- `node_group_scaler_target_nodes`: Target number of nodes for each scaling policy
+
+### Prometheus Configuration
+
+Add the following to your Prometheus configuration:
+
+```yaml
+scrape_configs:
+  - job_name: "node-group-scaler"
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        regex: node-group-scaler
+        action: keep
+```
+
+## Status Updates
+
+The operator updates the status of each NodeGroupScalingPolicy resource with information about the last scaling operation:
+
+```bash
+kubectl describe nodegroupscalingpolicy <policy-name>
+```
+
+Example output:
+
+```
+Status:
+  Last Scaling Operation:
+    Time: 2024-04-07T10:00:00Z
+    Target Nodes: 10
+    Actual Nodes: 10
+    Status: Success
+```
+
+## Alerting
+
+### Recommended Alerts
+
+1. **Failed Scaling Operations**
+
+```yaml
+alert: NodeGroupScalingFailed
+expr: node_group_scaler_scaling_operations_failed_total > 0
+for: 5m
+labels:
+  severity: warning
+annotations:
+  summary: "Node group scaling failed"
+  description: "Scaling operation failed for {{ $labels.nodegroup }}"
+```
+
+2. **Scaling Operation Delay**
+
+```yaml
+alert: NodeGroupScalingDelayed
+expr: time() - node_group_scaler_last_scaling_timestamp > 3600
+for: 15m
+labels:
+  severity: warning
+annotations:
+  summary: "Node group scaling delayed"
+  description: "No scaling operations in the last hour"
+```
+
+## Dashboard
+
+We provide a Grafana dashboard for visualizing scaling operations. You can import it using the following dashboard ID: `node-group-scaler`.
+
+The dashboard includes:
+
+- Scaling operation history
+- Current vs target node counts
+- Scaling operation success rate
+- Node group capacity utilization
+
+## Best Practices
+
+1. **Regular Monitoring**
+
+   - Check operator logs daily
+   - Review scaling operation history weekly
+   - Monitor alert channels for issues
+
+2. **Capacity Planning**
+
+   - Track scaling patterns over time
+   - Adjust min/max nodes based on usage patterns
+   - Plan for seasonal variations in workload
+
+3. **Troubleshooting**
+   - Keep logs for at least 7 days
+   - Document common issues and solutions
+   - Maintain runbooks for common scenarios

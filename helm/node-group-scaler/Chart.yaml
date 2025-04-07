@@ -1,0 +1,17 @@
+apiVersion: v2
+name: node-group-scaler
+description: A Kubernetes operator for managing automatic node group scaling
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: João Barros
+    email: augustoj311@gmail.com
+keywords:
+  - kubernetes
+  - operator
+  - scaling
+  - node-groups
+home: https://github.com/joao208/node-group-scaler
+sources:
+  - https://github.com/joao208/node-group-scaler

@@ -1,0 +1,55 @@
+{
+  "name": "Node Group Scaler",
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "favicon": "/favicon.png",
+  "api": {
+    "baseUrl": "https://api.nodegroupscaler.io",
+    "auth": {
+      "method": "bearer"
+    }
+  },
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "https://github.com/joao208/node-group-scaler/issues"
+    },
+    {
+      "name": "GitHub",
+      "url": "https://github.com/joao208/node-group-scaler"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "/installation"
+  },
+  "anchors": [],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["index", "installation"]
+    },
+    {
+      "group": "Configuration",
+      "pages": ["configuration", "triggers"]
+    },
+    {
+      "group": "Operations",
+      "pages": ["monitoring"]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/joao208/node-group-scaler"
+  }
+}

@@ -1,0 +1,10 @@
+{{- if .Values.aws.iamRoleArn -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "node-group-scaler.serviceAccountName" . }}
+  labels:
+    {{- include "node-group-scaler.labels" . | nindent 4 }}
+  annotations:
+    eks.amazonaws.com/role-arn: {{ .Values.aws.iamRoleArn }}
+{{- end }} 

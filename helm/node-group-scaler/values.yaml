@@ -1,0 +1,47 @@
+replicaCount: 1
+
+image:
+  repository: joao208/node-group-scaler
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+aws:
+  region: us-west-2
+  # IAM role ARN for the service account
+  iamRoleArn: ""
+
+operator:
+  logLevel: info
+  metricsPort: 8080
+  cooldownPeriod: 300 # 5 minutes in seconds

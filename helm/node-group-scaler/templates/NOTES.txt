@@ -1,0 +1,28 @@
+Node Group Scaler Operator has been successfully installed!
+
+To start using the operator, create a NodeGroupScalingPolicy. Example:
+
+apiVersion: scaling.nodegroupscaler.io/v1alpha1
+kind: NodeGroupScalingPolicy
+metadata:
+  name: example-policy
+  namespace: default
+spec:
+  nodeGroup:
+    name: my-node-group
+    provider: aws
+    region: us-west-2
+  scaling:
+    minNodes: 2
+    maxNodes: 10
+  schedule:
+    - cron: "0 9 * * 1-5"
+      targetNodes: 8
+    - cron: "0 18 * * 1-5"
+      targetNodes: 2
+
+To check the operator status:
+  kubectl get pods -n {{ .Release.Namespace }}
+
+To view operator logs:
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "node-group-scaler.name" . }}

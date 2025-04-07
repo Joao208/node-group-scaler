@@ -1,0 +1,19 @@
+{
+  "name": "node-group-scaler",
+  "version": "1.0.0",
+  "description": "Kubernetes operator for node group scaling",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@aws-sdk/client-eks": "^3.782.0",
+    "@kubernetes/client-node": "^1.1.1",
+    "@types/cron": "^2.4.3",
+    "cron": "^4.1.4",
+    "cron-parser": "^5.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

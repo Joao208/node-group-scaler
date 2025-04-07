@@ -1,0 +1,153 @@
+---
+title: Configuration
+description: How to configure the Node Group Scaler Operator
+---
+
+# Configuration
+
+Learn how to configure the Node Group Scaler Operator and create scaling policies for your node groups.
+
+## NodeGroupScalingPolicy
+
+The `NodeGroupScalingPolicy` Custom Resource Definition (CRD) is the main way to configure scaling policies for your node groups.
+
+### Basic Structure
+
+```yaml
+apiVersion: scaling.nodegroupscaler.io/v1alpha1
+kind: NodeGroupScalingPolicy
+metadata:
+  name: example-policy
+  namespace: default
+spec:
+  nodeGroup:
+    name: my-node-group
+    provider: aws
+    region: us-west-2
+  scaling:
+    minNodes: 2
+    maxNodes: 10
+  schedule:
+    - cron: "0 9 * * 1-5"
+      targetNodes: 8
+  cooldownPeriod: 300
+```
+
+### Field Descriptions
+
+#### nodeGroup
+
+- `name`: Name of the node group to scale
+- `provider`: Cloud provider (currently supports "aws")
+- `region`: AWS region where the node group is located
+
+#### scaling
+
+- `minNodes`: Minimum number of nodes to maintain
+- `maxNodes`: Maximum number of nodes allowed
+
+#### schedule
+
+- `cron`: Cron expression for when to apply the scaling
+- `targetNodes`: Target number of nodes for this schedule
+- `description`: Optional description of the schedule
+
+#### cooldownPeriod
+
+- Time in seconds to wait between scaling operations (default: 300)
+
+## Examples
+
+### Basic Scaling Policy
+
+```yaml
+apiVersion: scaling.nodegroupscaler.io/v1alpha1
+kind: NodeGroupScalingPolicy
+metadata:
+  name: basic-scaling
+spec:
+  nodeGroup:
+    name: production-nodes
+    provider: aws
+  scaling:
+    minNodes: 3
+    maxNodes: 15
+  schedule:
+    - cron: "0 8 * * *"
+      targetNodes: 10
+```
+
+### Multiple Scaling Policies
+
+```yaml
+apiVersion: scaling.nodegroupscaler.io/v1alpha1
+kind: NodeGroupScalingPolicy
+metadata:
+  name: complex-scaling
+spec:
+  nodeGroup:
+    name: production-nodes
+    provider: aws
+  scaling:
+    minNodes: 3
+    maxNodes: 20
+  schedule:
+    - cron: "0 8 * * 1-5"
+      targetNodes: 15
+      description: "Weekday morning scale up"
+    - cron: "0 18 * * 1-5"
+      targetNodes: 5
+      description: "Weekday evening scale down"
+    - cron: "0 10 * * 0,6"
+      targetNodes: 8
+      description: "Weekend morning scale up"
+```
+
+## Applying Configuration
+
+To apply a scaling policy:
+
+```bash
+kubectl apply -f scaling-policy.yaml
+```
+
+To verify the policy:
+
+```bash
+kubectl get nodegroupscalingpolicies
+```
+
+## Best Practices
+
+1. **Set Appropriate Limits**
+
+   - Always define `minNodes` and `maxNodes` based on your workload requirements
+   - Consider your cluster's capacity and budget constraints
+
+2. **Schedule Planning**
+
+   - Use descriptive names and descriptions for your schedules
+   - Consider timezone differences when setting up schedules
+   - Allow sufficient time between scaling operations
+
+3. **Monitoring**
+   - Regularly check the operator logs for scaling operations
+   - Monitor node group metrics to validate scaling behavior
+
+## Troubleshooting
+
+If your scaling policy isn't working as expected:
+
+1. Check the operator logs:
+
+```bash
+kubectl logs -n node-group-scaler -l app=node-group-scaler
+```
+
+2. Verify the policy status:
+
+```bash
+kubectl describe nodegroupscalingpolicy <policy-name>
+```
+
+3. Ensure your AWS credentials have the necessary permissions

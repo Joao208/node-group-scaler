@@ -1,0 +1,69 @@
+---
+title: Installation
+description: How to install the Node Group Scaler Operator
+---
+
+# Installation
+
+This guide will help you install the Node Group Scaler Operator in your Kubernetes cluster.
+
+## Prerequisites
+
+Before installing the operator, ensure you have:
+
+- Kubernetes cluster 1.19+
+- Helm 3.0+
+- AWS CLI configured (for AWS EKS support)
+- kubectl configured to communicate with your cluster
+
+## Installation Methods
+
+### Using Helm (Recommended)
+
+1. Add the Helm repository:
+
+```bash
+helm repo add node-group-scaler https://charts.nodegroupscaler.io
+helm repo update
+```
+
+2. Install the operator:
+
+```bash
+helm install node-group-scaler node-group-scaler/node-group-scaler \
+  --namespace node-group-scaler \
+  --create-namespace
+```
+
+### Manual Installation
+
+If you prefer to install manually, you can apply the manifests directly:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/joao208/node-group-scaler/main/deploy/manifests.yaml
+```
+
+## Verification
+
+After installation, verify that the operator is running:
+
+```bash
+kubectl get pods -n node-group-scaler
+```
+
+You should see the operator pod running:
+
+```
+NAME                                  READY   STATUS    RESTARTS   AGE
+node-group-scaler-5f4b8c6d8b-2xvqp   1/1     Running   0          1m
+```
+
+## Configuration
+
+The operator can be configured using Helm values or by modifying the deployment directly. See the [Configuration](/configuration) section for detailed options.
+
+## Next Steps
+
+- [Configure your first scaling policy](/configuration)
+- [Learn about available triggers](/triggers)
+- [Set up monitoring](/monitoring)

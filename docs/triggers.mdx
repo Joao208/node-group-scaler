@@ -1,0 +1,139 @@
+---
+title: Triggers
+description: Available triggers for the Node Group Scaler Operator
+---
+
+# Triggers
+
+The Node Group Scaler Operator supports various triggers for scaling operations. Currently, the main trigger type is based on cron schedules, with plans to add more trigger types in the future.
+
+## Cron Schedule Triggers
+
+Cron schedule triggers allow you to scale your node groups based on time-based schedules.
+
+### Cron Expression Format
+
+The operator uses standard cron expressions with the following format:
+
+```
+┌────────────── minute (0 - 59)
+│ ┌──────────── hour (0 - 23)
+│ │ ┌────────── day of month (1 - 31)
+│ │ │ ┌──────── month (1 - 12)
+│ │ │ │ ┌────── day of week (0 - 6) (Sunday to Saturday)
+│ │ │ │ │
+* * * * *
+```
+
+### Examples
+
+1. **Daily Scaling**
+
+```yaml
+schedule:
+  - cron: "0 8 * * *" # Scale up at 8 AM every day
+    targetNodes: 10
+  - cron: "0 18 * * *" # Scale down at 6 PM every day
+    targetNodes: 5
+```
+
+2. **Weekday Scaling**
+
+```yaml
+schedule:
+  - cron: "0 9 * * 1-5" # Scale up at 9 AM on weekdays
+    targetNodes: 15
+  - cron: "0 17 * * 1-5" # Scale down at 5 PM on weekdays
+    targetNodes: 5
+```
+
+3. **Weekend Scaling**
+
+```yaml
+schedule:
+  - cron: "0 10 * * 0,6" # Scale up at 10 AM on weekends
+    targetNodes: 8
+  - cron: "0 16 * * 0,6" # Scale down at 4 PM on weekends
+    targetNodes: 3
+```
+
+## Multiple Triggers
+
+You can combine multiple triggers in a single policy:
+
+```yaml
+apiVersion: scaling.nodegroupscaler.io/v1alpha1
+kind: NodeGroupScalingPolicy
+metadata:
+  name: complex-schedule
+spec:
+  nodeGroup:
+    name: production-nodes
+    provider: aws
+  scaling:
+    minNodes: 3
+    maxNodes: 20
+  schedule:
+    - cron: "0 8 * * 1-5"
+      targetNodes: 15
+      description: "Weekday morning scale up"
+    - cron: "0 18 * * 1-5"
+      targetNodes: 5
+      description: "Weekday evening scale down"
+    - cron: "0 10 * * 0,6"
+      targetNodes: 8
+      description: "Weekend morning scale up"
+    - cron: "0 16 * * 0,6"
+      targetNodes: 3
+      description: "Weekend evening scale down"
+```
+
+## Best Practices
+
+1. **Schedule Planning**
+
+   - Use descriptive names and descriptions
+   - Consider timezone differences
+   - Allow sufficient time between scaling operations
+   - Plan for maintenance windows
+
+2. **Capacity Management**
+
+   - Set appropriate min/max nodes
+   - Consider workload patterns
+   - Plan for peak times
+   - Account for maintenance periods
+
+3. **Schedule Conflicts**
+   - Avoid overlapping schedules
+   - Use clear descriptions
+   - Document schedule rationale
+   - Test schedule changes in staging
+
+## Upcoming Trigger Types
+
+The following trigger types are planned for future releases:
+
+1. **Metrics-based Scaling**
+
+   - CPU utilization
+   - Memory usage
+   - Custom metrics
+   - Pod density
+
+2. **Event-based Scaling**
+
+   - Webhook triggers
+   - Custom events
+   - External system events
+
+3. **Time-based Scaling**
+
+   - Timezone support
+   - Holiday calendars
+   - Maintenance windows
+
+4. **Manual Scaling**
+   - CLI commands
+   - API endpoints
+   - Dashboard controls

@@ -1,0 +1,58 @@
+---
+title: Node Group Scaler Operator
+description: A Kubernetes operator for managing automatic node group scaling
+---
+
+# Node Group Scaler Operator
+
+Welcome to the Node Group Scaler Operator documentation. This operator helps you automate the scaling of your Kubernetes node groups across different cloud providers.
+
+## What is Node Group Scaler?
+
+Node Group Scaler is a Kubernetes operator that automates the scaling of node groups based on various triggers and conditions. It provides a flexible and powerful way to manage your cluster's infrastructure.
+
+## Key Features
+
+- **Automatic Scaling**: Scale your node groups based on cron schedules
+- **Cloud Provider Support**: Currently supports AWS EKS, with plans for other providers
+- **Flexible Configuration**: Define minimum and maximum node limits
+- **Namespace-based**: Configure scaling policies per namespace
+- **Multiple Policies**: Support for multiple scaling policies per node group
+- **Graceful Scaling**: Configurable cooldown periods between scaling operations
+- **Monitoring**: Detailed metrics and logging for scaling operations
+
+## Quick Start
+
+```bash
+# Add the Helm repository
+helm repo add node-group-scaler https://charts.nodegroupscaler.io
+helm repo update
+
+# Install the operator
+helm install node-group-scaler node-group-scaler/node-group-scaler \
+  --namespace node-group-scaler \
+  --create-namespace
+```
+
+## Basic Example
+
+Here's a simple example of a scaling policy:
+
+```yaml
+apiVersion: scaling.nodegroupscaler.io/v1alpha1
+kind: NodeGroupScalingPolicy
+metadata:
+  name: basic-scaling
+spec:
+  nodeGroup:
+    name: production-nodes
+    provider: aws
+  scaling:
+    minNodes: 3
+    maxNodes: 15
+  schedule:
+    - cron: "0 8 * * *"
+      targetNodes: 10
+```
+
+This policy will scale your node group to 10 nodes at 8 AM every day, while maintaining a minimum of 3 nodes and a maximum of 15 nodes.
