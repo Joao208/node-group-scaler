@@ -48,4 +48,15 @@ Selector labels
 {{- define "node-group-scaler.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "node-group-scaler.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "node-group-scaler.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "node-group-scaler.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
 {{- end }} 
