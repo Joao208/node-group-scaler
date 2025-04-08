@@ -2,6 +2,8 @@ import * as k8s from '@kubernetes/client-node'
 import { NodeGroupScalerController, nodeGroupScalerCRD } from './utils'
 
 async function main() {
+  console.log('Starting NodeGroupScaler...')
+
   const kc = new k8s.KubeConfig()
   kc.loadFromDefault()
 
