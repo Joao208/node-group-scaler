@@ -4,7 +4,9 @@
   "description": "Kubernetes operator for node group scaling",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
   },
   "dependencies": {
     "@aws-sdk/client-eks": "^3.782.0",
@@ -14,6 +16,7 @@
     "cron-parser": "^5.1.1"
   },
   "devDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "ts-node": "^10.9.2"
   }
 }
