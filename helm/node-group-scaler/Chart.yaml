@@ -2,8 +2,8 @@ apiVersion: v2
 name: node-group-scaler
 description: A Kubernetes operator for managing automatic node group scaling
 type: application
-version: 1.0.1
-appVersion: '1.0.1'
+version: 1.0.2
+appVersion: '1.0.2'
 maintainers:
   - name: João Barros
     email: augustoj311@gmail.com
