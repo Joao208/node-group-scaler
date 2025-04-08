@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: joao208/node-group-scaler
+  repository: ghcr.io/joao208/node-group-scaler
   tag: latest
   pullPolicy: IfNotPresent
 
