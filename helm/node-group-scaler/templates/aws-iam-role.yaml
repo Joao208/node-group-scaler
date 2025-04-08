@@ -1,4 +1,4 @@
-{{- if .Values.aws.iamRoleArn -}}
+{{- $iamRoleArn := required "aws.iamRoleArn is required" .Values.aws.iamRoleArn -}}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -6,5 +6,4 @@ metadata:
   labels:
     {{- include "node-group-scaler.labels" . | nindent 4 }}
   annotations:
-    eks.amazonaws.com/role-arn: {{ .Values.aws.iamRoleArn }}
-{{- end }} 
+    eks.amazonaws.com/role-arn: {{ $iamRoleArn }} 
