@@ -5,12 +5,6 @@
     "dark": "/logo/dark.svg"
   },
   "favicon": "/favicon.png",
-  "api": {
-    "baseUrl": "https://api.nodegroupscaler.io",
-    "auth": {
-      "method": "bearer"
-    }
-  },
   "colors": {
     "primary": "#0D9373",
     "light": "#07C983",
