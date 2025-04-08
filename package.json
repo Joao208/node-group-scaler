@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Kubernetes operator for node group scaling",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",

@@ -1,5 +1,5 @@
 import * as k8s from '@kubernetes/client-node'
-import { NodeGroupScalerController, nodeGroupScalerCRD } from './utils'
+import { NodeGroupScalerController, nodeGroupScalerCRD } from './utils.js'
 
 async function main() {
   console.log('Starting NodeGroupScaler...')
