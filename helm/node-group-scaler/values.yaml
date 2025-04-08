@@ -2,15 +2,15 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/joao208/node-group-scaler
-  tag: latest
+  tag: main
   pullPolicy: IfNotPresent
 
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: ''
+fullnameOverride: ''
 
 serviceAccount:
   create: true
-  name: ""
+  name: ''
 
 podAnnotations: {}
 
@@ -39,7 +39,7 @@ affinity: {}
 aws:
   region: us-west-2
   # IAM role ARN for the service account
-  iamRoleArn: ""
+  iamRoleArn: ''
 
 operator:
   logLevel: info
