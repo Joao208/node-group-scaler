@@ -38,6 +38,8 @@ spec:
               value: {{ .Values.operator.logLevel }}
             - name: COOLDOWN_PERIOD
               value: {{ .Values.operator.cooldownPeriod | quote }}
+            - name: POLLING_INTERVAL
+              value: {{ .Values.operator.pollingInterval | quote }}
           ports:
             - name: metrics
               containerPort: {{ .Values.operator.metricsPort }}

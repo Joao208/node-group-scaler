@@ -6,6 +6,34 @@ import {
 } from '@aws-sdk/client-eks'
 import { CronJob } from 'cron'
 
+interface NodeGroupScalingPolicy {
+  metadata: {
+    namespace: string
+    name: string
+  }
+  spec: {
+    nodeGroup: {
+      name: string
+      provider: string
+      region?: string
+    }
+    scaling: {
+      minNodes: number
+      maxNodes: number
+    }
+    schedule: Array<{
+      cron: string
+      targetNodes: number
+      description?: string
+    }>
+    cooldownPeriod?: number
+  }
+}
+
+interface K8sListResponse {
+  items: NodeGroupScalingPolicy[]
+}
+
 const nodeGroupScalerCRD = {
   apiVersion: 'apiextensions.k8s.io/v1',
   kind: 'CustomResourceDefinition',
@@ -112,6 +140,7 @@ class NodeGroupScalerController {
   private lastScalingTime: Map<string, number>
   private logLevel: string
   private defaultCooldownPeriod: number
+  private pollingInterval: number
 
   constructor(kc: k8s.KubeConfig) {
     this.kc = kc
@@ -126,6 +155,8 @@ class NodeGroupScalerController {
       process.env.COOLDOWN_PERIOD || '300',
       10
     )
+    this.pollingInterval =
+      parseInt(process.env.POLLING_INTERVAL || '30', 10) * 1000 // Converte para milissegundos
   }
 
   private log(level: string, message: string) {
@@ -139,45 +170,52 @@ class NodeGroupScalerController {
   }
 
   async start() {
-    this.log('info', 'NodeGroupScaler Controller started')
+    this.log('info', `Started polling every ${this.pollingInterval} seconds`)
 
-    try {
-      const watch = new k8s.Watch(this.kc)
+    const poll = async () => {
+      try {
+        this.log('info', 'Listing policies...')
 
-      const stream = await watch.watch(
-        '/apis/scaling.nodegroupscaler.io/v1alpha1/nodegroupscalingpolicies',
-        {},
-        (type, obj) => {
-          const policy = obj
+        const response = await this.k8sApi.listClusterCustomObject({
+          group: 'scaling.nodegroupscaler.io',
+          version: 'v1alpha1',
+          plural: 'nodegroupscalingpolicies',
+        })
+
+        const { items: policies } = response as K8sListResponse
+
+        this.log('info', `Found ${policies.length} policies`)
+
+        const currentPolicies = new Set()
+
+        for (const policy of policies) {
+          this.log('info', `Processing policy ${policy.metadata.name}`)
+
           const { metadata } = policy
           const key = `${metadata.namespace}/${metadata.name}`
+          currentPolicies.add(key)
 
-          this.log(
-            'info',
-            `Received ${type} event for NodeGroupScalingPolicy ${key}`
-          )
-
-          switch (type) {
-            case 'ADDED':
-            case 'MODIFIED':
-              this.setupCronJobs(metadata.namespace, metadata.name, obj)
-              break
-            case 'DELETED':
-              this.removeCronJobs(key)
-              this.log('info', `NodeGroupScalingPolicy ${key} was deleted`)
-              break
-          }
-        },
-        (err) => {
-          this.log('error', `Watch error: ${err}`)
-          stream.abort()
-          setTimeout(() => this.start(), 5000)
+          this.setupCronJobs(metadata.namespace, metadata.name, policy)
         }
-      )
-    } catch (error) {
-      this.log('error', `Error starting watch: ${error}`)
-      setTimeout(() => this.start(), 5000)
+
+        this.log('info', 'Removing old cron jobs...')
+
+        for (const [jobKey] of this.cronJobs) {
+          const policyKey = jobKey.split('-')[0]
+          if (!currentPolicies.has(policyKey)) {
+            this.removeCronJobs(policyKey)
+            this.log('info', `Removed cron job for ${policyKey}`)
+          }
+        }
+
+        this.log('info', 'Cron jobs updated')
+      } catch (error) {
+        this.log('error', `Polling error: ${error}`)
+      }
     }
+
+    await poll()
+    setInterval(poll, this.pollingInterval)
   }
 
   private setupCronJobs(namespace: string, name: string, policy: any) {
