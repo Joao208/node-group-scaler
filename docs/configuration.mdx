@@ -131,8 +131,87 @@ kubectl get nodegroupscalingpolicies
    - Allow sufficient time between scaling operations
 
 3. **Monitoring**
+
    - Regularly check the operator logs for scaling operations
    - Monitor node group metrics to validate scaling behavior
+
+4. Ensure your AWS credentials have the necessary permissions
+
+## IAM Configuration
+
+To ensure the operator has the necessary permissions to manage your node groups, you need to create an IAM role with appropriate permissions. Here's a step-by-step guide using AWS CLI:
+
+1. First, create an IAM policy file (policy.json):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeNodegroup",
+        "eks:UpdateNodegroupVersion",
+        "eks:UpdateNodegroupConfig",
+        "eks:ListNodegroups",
+        "eks:DescribeCluster",
+        "eks:ListClusters"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+2. Create the policy using AWS CLI:
+
+```bash
+aws iam create-policy \
+    --policy-name NodeGroupScalerPolicy \
+    --policy-document file://policy.json
+```
+
+3. Create a trust policy file (trust-policy.json):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<ACCOUNT_ID>:oidc-provider/<OIDC_PROVIDER>"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "<OIDC_PROVIDER>:sub": "system:serviceaccount:node-group-scaler:node-group-scaler"
+        }
+      }
+    }
+  ]
+}
+```
+
+4. Create the role using AWS CLI:
+
+```bash
+aws iam create-role \
+    --role-name NodeGroupScalerRole \
+    --assume-role-policy-document file://trust-policy.json
+```
+
+5. Attach the policy to the role:
+
+```bash
+aws iam attach-role-policy \
+    --role-name NodeGroupScalerRole \
+    --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/NodeGroupScalerPolicy
+```
+
+Replace `<ACCOUNT_ID>` with your AWS account ID and `<OIDC_PROVIDER>` with your EKS OIDC provider.
+
+The created role ARN should be used in the `iamRoleArn` field of your NodeGroupScaler configuration.
 
 ## Troubleshooting
 
