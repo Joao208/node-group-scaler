@@ -40,6 +40,8 @@ spec:
               value: {{ .Values.operator.cooldownPeriod | quote }}
             - name: POLLING_INTERVAL
               value: {{ .Values.operator.pollingInterval | quote }}
+            - name: CLUSTER_NAME
+              value: {{ .Values.cluster.name | quote }}
           ports:
             - name: metrics
               containerPort: {{ .Values.operator.metricsPort }}

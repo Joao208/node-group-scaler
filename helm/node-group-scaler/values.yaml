@@ -46,3 +46,6 @@ operator:
   metricsPort: 8080
   cooldownPeriod: 300 # 5 minutes in seconds
   pollingInterval: 30 # 30 seconds between each poll
+
+cluster:
+  name: ''

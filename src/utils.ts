@@ -201,10 +201,18 @@ class NodeGroupScalerController {
         this.log('info', 'Removing old cron jobs...')
 
         for (const [jobKey] of this.cronJobs) {
-          const policyKey = jobKey.split('-')[0]
-          if (!currentPolicies.has(policyKey)) {
-            this.removeCronJobs(policyKey)
-            this.log('info', `Removed cron job for ${policyKey}`)
+          let hasPolicy = false
+
+          for (const policy of currentPolicies) {
+            if (jobKey.includes(policy as string)) {
+              hasPolicy = true
+              break
+            }
+          }
+
+          if (!hasPolicy) {
+            this.removeCronJobs(jobKey)
+            this.log('info', `Removed cron job for ${jobKey}`)
           }
         }
 
@@ -259,6 +267,11 @@ class NodeGroupScalerController {
     targetNodes: number
   ) {
     try {
+      this.log(
+        'info',
+        `Reconciling node group scaling for ${namespace}/${name}`
+      )
+
       const response = await this.k8sApi.getNamespacedCustomObject({
         group: 'scaling.nodegroupscaler.io',
         version: 'v1alpha1',
@@ -267,7 +280,7 @@ class NodeGroupScalerController {
         name,
       })
 
-      const policy = response.body
+      const policy = response
       const { spec } = policy
       const key = `${namespace}/${name}`
 
@@ -289,7 +302,7 @@ class NodeGroupScalerController {
       }
 
       const describeCommand = new DescribeNodegroupCommand({
-        clusterName: spec.nodeGroup.name,
+        clusterName: process.env.CLUSTER_NAME || '',
         nodegroupName: spec.nodeGroup.name,
       })
 
@@ -311,7 +324,7 @@ class NodeGroupScalerController {
       )
 
       const updateCommand = new UpdateNodegroupConfigCommand({
-        clusterName: spec.nodeGroup.name,
+        clusterName: process.env.CLUSTER_NAME || '',
         nodegroupName: spec.nodeGroup.name,
         scalingConfig: {
           desiredSize: boundedTargetNodes,
