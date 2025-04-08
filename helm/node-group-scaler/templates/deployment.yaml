@@ -36,8 +36,6 @@ spec:
               value: {{ .Values.aws.region }}
             - name: LOG_LEVEL
               value: {{ .Values.operator.logLevel }}
-            - name: METRICS_PORT
-              value: {{ .Values.operator.metricsPort | quote }}
             - name: COOLDOWN_PERIOD
               value: {{ .Values.operator.cooldownPeriod | quote }}
           ports:

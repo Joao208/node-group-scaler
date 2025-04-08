@@ -110,17 +110,36 @@ class NodeGroupScalerController {
   private kc: k8s.KubeConfig
   private cronJobs: Map<string, CronJob>
   private lastScalingTime: Map<string, number>
+  private logLevel: string
+  private defaultCooldownPeriod: number
 
   constructor(kc: k8s.KubeConfig) {
     this.kc = kc
     this.k8sApi = kc.makeApiClient(k8s.CustomObjectsApi)
-    this.eksClient = new EKSClient({})
+    this.eksClient = new EKSClient({
+      region: process.env.AWS_REGION || 'us-east-1',
+    })
     this.cronJobs = new Map()
     this.lastScalingTime = new Map()
+    this.logLevel = process.env.LOG_LEVEL || 'info'
+    this.defaultCooldownPeriod = parseInt(
+      process.env.COOLDOWN_PERIOD || '300',
+      10
+    )
+  }
+
+  private log(level: string, message: string) {
+    const levels = ['error', 'warn', 'info', 'debug']
+    const currentLevelIndex = levels.indexOf(this.logLevel)
+    const messageLevelIndex = levels.indexOf(level)
+
+    if (messageLevelIndex <= currentLevelIndex) {
+      console.log(`[${level.toUpperCase()}] ${message}`)
+    }
   }
 
   async start() {
-    console.log('NodeGroupScaler Controller started')
+    this.log('info', 'NodeGroupScaler Controller started')
 
     try {
       const watch = new k8s.Watch(this.kc)
@@ -133,7 +152,8 @@ class NodeGroupScalerController {
           const { metadata } = policy
           const key = `${metadata.namespace}/${metadata.name}`
 
-          console.log(
+          this.log(
+            'info',
             `Received ${type} event for NodeGroupScalingPolicy ${key}`
           )
 
@@ -144,18 +164,18 @@ class NodeGroupScalerController {
               break
             case 'DELETED':
               this.removeCronJobs(key)
-              console.log(`NodeGroupScalingPolicy ${key} was deleted`)
+              this.log('info', `NodeGroupScalingPolicy ${key} was deleted`)
               break
           }
         },
         (err) => {
-          console.error('Watch error:', err)
+          this.log('error', `Watch error: ${err}`)
           stream.abort()
           setTimeout(() => this.start(), 5000)
         }
       )
     } catch (error) {
-      console.error('Error starting watch:', error)
+      this.log('error', `Error starting watch: ${error}`)
       setTimeout(() => this.start(), 5000)
     }
   }
@@ -178,7 +198,8 @@ class NodeGroupScalerController {
       const jobKey = `${key}-${scheduleItem.cron}`
       this.cronJobs.set(jobKey, job)
       job.start()
-      console.log(
+      this.log(
+        'info',
         `Cron job started for ${key} with schedule ${scheduleItem.cron}`
       )
     })
@@ -189,6 +210,7 @@ class NodeGroupScalerController {
       if (jobKey.startsWith(key)) {
         job.stop()
         this.cronJobs.delete(jobKey)
+        this.log('info', `Cron job stopped for ${jobKey}`)
       }
     }
   }
@@ -212,16 +234,19 @@ class NodeGroupScalerController {
       const key = `${namespace}/${name}`
 
       const lastScaling = this.lastScalingTime.get(key) || 0
-      const cooldownPeriod = spec.cooldownPeriod || 300
+      const cooldownPeriod = spec.cooldownPeriod || this.defaultCooldownPeriod
       const now = Date.now()
 
       if (now - lastScaling < cooldownPeriod * 1000) {
-        console.log(`Skipping scaling due to cooldown period for ${key}`)
+        this.log('info', `Skipping scaling due to cooldown period for ${key}`)
         return
       }
 
       if (spec.nodeGroup.provider !== 'aws') {
-        console.log(`Provider ${spec.nodeGroup.provider} not supported yet`)
+        this.log(
+          'info',
+          `Provider ${spec.nodeGroup.provider} not supported yet`
+        )
         return
       }
 
@@ -235,7 +260,8 @@ class NodeGroupScalerController {
         nodeGroupInfo.nodegroup?.scalingConfig?.desiredSize || 0
 
       if (currentNodeCount === targetNodes) {
-        console.log(
+        this.log(
+          'info',
           `Node group ${spec.nodeGroup.name} already at target size ${targetNodes}`
         )
         return
@@ -259,13 +285,14 @@ class NodeGroupScalerController {
       await this.eksClient.send(updateCommand)
       this.lastScalingTime.set(key, now)
 
-      console.log(
+      this.log(
+        'info',
         `Scaled node group ${spec.nodeGroup.name} to ${boundedTargetNodes} nodes`
       )
     } catch (error) {
-      console.error(
-        `Error reconciling NodeGroupScalingPolicy ${namespace}/${name}:`,
-        error
+      this.log(
+        'error',
+        `Error reconciling NodeGroupScalingPolicy ${namespace}/${name}: ${error}`
       )
     }
   }
