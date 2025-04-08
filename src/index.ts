@@ -21,7 +21,7 @@ async function main() {
     const controller = new NodeGroupScalerController(kc)
     await controller.start()
   } catch (error: any) {
-    if (error.response?.statusCode === 409) {
+    if (error.response?.statusCode === 409 || error.code === 409) {
       console.log('CRD already exists, continuing...')
       const controller = new NodeGroupScalerController(kc)
       await controller.start()
