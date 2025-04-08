@@ -211,9 +211,8 @@ class NodeGroupScalerController {
       const { spec } = policy;
       const key = `${namespace}/${name}`;
 
-      // Check cooldown period
       const lastScaling = this.lastScalingTime.get(key) || 0;
-      const cooldownPeriod = spec.cooldownPeriod || 300; // Default 5 minutes
+      const cooldownPeriod = spec.cooldownPeriod || 300;
       const now = Date.now();
 
       if (now - lastScaling < cooldownPeriod * 1000) {
@@ -242,7 +241,6 @@ class NodeGroupScalerController {
         return;
       }
 
-      // Ensure target nodes is within min/max bounds
       const boundedTargetNodes = Math.max(
         spec.scaling.minNodes,
         Math.min(spec.scaling.maxNodes, targetNodes)
