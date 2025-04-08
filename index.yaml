@@ -2,6 +2,27 @@ apiVersion: v1
 entries:
   node-group-scaler:
   - apiVersion: v2
+    appVersion: 1.0.2
+    created: "2025-04-08T03:53:26.76483926Z"
+    description: A Kubernetes operator for managing automatic node group scaling
+    digest: 92e159767585eef11b2e0b08081739ea2b381502c197eaf985807bdeabfc48fb
+    home: https://github.com/joao208/node-group-scaler
+    keywords:
+    - kubernetes
+    - operator
+    - scaling
+    - node-groups
+    maintainers:
+    - email: augustoj311@gmail.com
+      name: João Barros
+    name: node-group-scaler
+    sources:
+    - https://github.com/joao208/node-group-scaler
+    type: application
+    urls:
+    - https://github.com/Joao208/node-group-scaler/releases/download/node-group-scaler-1.0.2/node-group-scaler-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
     appVersion: 1.0.1
     created: "2025-04-08T03:51:00.030431511Z"
     description: A Kubernetes operator for managing automatic node group scaling
@@ -42,4 +63,4 @@ entries:
     urls:
     - https://charts.nodegroupscaler.io/node-group-scaler-1.0.0.tgz
     version: 1.0.0
-generated: "2025-04-08T03:51:00.030467228Z"
+generated: "2025-04-08T03:53:26.764851412Z"
