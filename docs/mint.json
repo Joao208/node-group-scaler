@@ -40,7 +40,7 @@
     },
     {
       "group": "Operations",
-      "pages": ["monitoring"]
+      "pages": ["monitoring", "cleanup"]
     }
   ],
   "footerSocials": {

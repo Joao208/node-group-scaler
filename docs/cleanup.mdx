@@ -1,0 +1,155 @@
+---
+title: Cleanup and Maintenance
+description: How to clean up and maintain the Node Group Scaler Operator
+---
+
+# Cleanup and Maintenance
+
+Learn how to properly clean up and maintain the Node Group Scaler Operator and its associated resources.
+
+## Resource Cleanup
+
+### Manual Cleanup
+
+To perform manual cleanup of resources, follow these steps:
+
+1. Remove the Helm release:
+
+```bash
+helm uninstall node-group-scaler -n <namespace>
+```
+
+2. Delete persistent resources (if necessary):
+
+```bash
+kubectl delete -f helm/node-group-scaler/templates/persistent-resources.yaml -n <namespace>
+```
+
+3. Clean up AWS resources:
+
+```bash
+# Remove IAM roles and policies
+aws iam detach-role-policy --role-name NodeGroupScalerRole --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/NodeGroupScalerPolicy
+aws iam delete-role --role-name NodeGroupScalerRole
+aws iam delete-policy --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/NodeGroupScalerPolicy
+```
+
+> ⚠️ **Warning**: Be careful when deleting AWS resources. Make sure you have backups and that you're deleting the correct resources.
+
+### Automatic Cleanup
+
+The Node Group Scaler has automatic cleanup mechanisms:
+
+- Old metrics cleanup
+- Orphaned resource removal
+- Old logs cleanup
+
+## Maintenance
+
+### Logs
+
+Logs are retained for 7 days by default. To adjust this period:
+
+1. Edit `values.yaml`
+2. Modify the `logRetentionDays` configuration
+3. Apply changes with `helm upgrade`
+
+### Metrics
+
+Metrics are retained for 15 days by default. To adjust:
+
+1. Edit `values.yaml`
+2. Modify the `metricsRetentionDays` configuration
+3. Apply changes with `helm upgrade`
+
+## Best Practices
+
+1. **Resource Cleanup**
+
+   - Always verify resources before deletion
+   - Keep backups of important configurations
+   - Document any manual changes made to resources
+
+2. **Maintenance Schedule**
+
+   - Regularly check and rotate logs
+   - Monitor resource usage and cleanup effectiveness
+   - Review and update retention periods as needed
+
+3. **AWS Resource Management**
+
+   - Regularly audit IAM roles and policies
+   - Monitor CloudTrail for resource changes
+   - Keep track of all created resources
+
+4. Ensure proper permissions for cleanup operations
+
+## IAM Cleanup Configuration
+
+To properly clean up IAM resources, you need to ensure you have the necessary permissions. Here's a step-by-step guide:
+
+1. First, verify the IAM role and policy:
+
+```bash
+aws iam get-role --role-name NodeGroupScalerRole
+aws iam get-policy --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/NodeGroupScalerPolicy
+```
+
+2. Detach the policy from the role:
+
+```bash
+aws iam detach-role-policy \
+    --role-name NodeGroupScalerRole \
+    --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/NodeGroupScalerPolicy
+```
+
+3. Delete the role:
+
+```bash
+aws iam delete-role --role-name NodeGroupScalerRole
+```
+
+4. Delete the policy:
+
+```bash
+aws iam delete-policy --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/NodeGroupScalerPolicy
+```
+
+Replace `<ACCOUNT_ID>` with your AWS account ID.
+
+## Troubleshooting
+
+If you encounter issues during cleanup:
+
+1. Check the operator logs:
+
+```bash
+kubectl logs -n node-group-scaler -l app=node-group-scaler
+```
+
+2. Verify resource status:
+
+```bash
+kubectl get all -n <namespace> -l app.kubernetes.io/instance=node-group-scaler
+```
+
+3. Check AWS resource status:
+
+```bash
+aws iam list-role-policies --role-name NodeGroupScalerRole
+```
+
+4. Ensure you have the necessary permissions for cleanup operations
+
+### Useful Commands
+
+```bash
+# Check resources
+kubectl get all -n <namespace> -l app.kubernetes.io/instance=node-group-scaler
+
+# Check logs
+kubectl logs -n <namespace> -l app=node-group-scaler
+
+# Check events
+kubectl get events -n <namespace> --sort-by='.lastTimestamp'
+```
